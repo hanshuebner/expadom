@@ -89,6 +89,15 @@ function methods:write(buffer)
 	return buffer
 end
 
+--- exports the XML in canonical form
+-- @name DocumentType:writeCanonical
+-- @tparam table options array with canonical serialization options
+-- @tparam array buffer an array to which the chunks can be added.
+-- @return the buffer array
+function methods:writeCanonical(_options, buffer)
+	return buffer
+end
+
 
 -- no tail call in case of errors/stacktraces
 local DocumentType = Class("DocumentType", Node, methods, properties)

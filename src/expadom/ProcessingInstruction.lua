@@ -77,6 +77,16 @@ function methods:write(buffer)
 	return buffer
 end
 
+--- exports the XML in canonical form
+-- @name ProcessingInstruction:write
+-- @tparam table options array with canonical serialization options
+-- @tparam array buffer an array to which the chunks can be added.
+-- @return the buffer array
+function methods:writeCanonical(options, buffer)
+	buffer[#buffer+1] = string.format("<?%s %s?>", self.__prop_values.target, self.__prop_values.data)
+	return buffer
+end
+
 
 
 -- no tail call in case of errors/stacktraces

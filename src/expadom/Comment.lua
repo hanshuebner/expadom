@@ -85,6 +85,20 @@ function methods:write(buffer)
 	return buffer
 end
 
+
+--- exports the canonical form of the XML
+-- @name Comment:writeCanonical
+-- @tparam table options array with canonical serialization options
+-- @tparam array buffer an array to which the chunks can be added.
+-- @return the buffer array
+function methods:writeCanonical(options, buffer)
+	if not options.ignore_comments then
+		buffer = self:write(buffer)
+	end
+	return buffer
+end
+
+
 --- Appends data, implements [appendData](https://www.w3.org/TR/DOM-Level-2-Core/#core-ID-32791A2F).
 -- @name CharacterData:appendData
 -- @tparam string arg the data to append

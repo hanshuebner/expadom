@@ -95,6 +95,27 @@ function methods:write(buffer)
 end
 
 
+--- exports the XML in canonical form
+-- This will only write the attribute itself, any required namespace definitions
+-- will be dealt with by the `Element` class.
+-- @name Attribute:writeCanonical
+-- @tparam table options array with canonical serialization options
+-- @tparam array buffer an array to which the chunks can be added.
+-- @return the buffer array
+function methods:writeCanonical(options, buffer)
+	-- defining any namespaces will be dealt with on the element level
+	buffer[#buffer+1] = " "..self.__prop_values.name..'="'
+
+	local childNodes = self.__prop_values.childNodes
+	for i, child in ipairs(childNodes) do
+		child:writeCanonical(options, buffer)
+	end
+
+	buffer[#buffer+1] = '"'
+	return buffer
+end
+
+
 -- no tail call in case of errors/stacktraces
 local Attribute = Class("Attribute", Node, methods, properties)
 return Attribute

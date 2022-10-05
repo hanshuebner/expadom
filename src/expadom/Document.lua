@@ -124,6 +124,22 @@ end
 
 
 
+--- exports the canonical form of the XML
+-- @name Comment:writeCanonical
+-- @tparam table options array with canonical serialization options
+-- @tparam[opt] array buffer an array to which the chunks can be added.
+-- @tparam[opt] table namespacesInScope namespaceURIs indexed by prefix. For any namespace
+-- @return the buffer array
+function methods:writeCanonical(options, buffer, namespacesInScope)
+	buffer = buffer or {}
+	namespacesInScope = namespacesInScope or {}
+	for _, child in ipairs(self.__prop_values.childNodes) do
+		child:writeCanonical(options, buffer, namespacesInScope)
+	end
+	return buffer
+end
+
+
 -- Node overrides
 
 do

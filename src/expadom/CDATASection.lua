@@ -39,6 +39,15 @@ function methods:write(buffer)
 	return buffer
 end
 
+--- exports the XML in canonical form
+-- @name CDATASection:writeCanonical
+-- @tparam array buffer an array to which the chunks can be added.
+-- @return the buffer array
+function methods:writeCanonical(options, buffer)
+	buffer[#buffer+1] = self.__prop_values.data
+	return buffer
+end
+
 
 -- no tail call in case of errors/stacktraces
 local CDATASection = Class("CDATASection", Text, methods, properties)

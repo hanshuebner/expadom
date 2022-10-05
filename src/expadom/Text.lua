@@ -60,6 +60,17 @@ function methods:write(buffer)
 end
 
 
+--- exports the XML in canonical form
+-- @name Text:write
+-- @tparam table options array with canonical serialization options
+-- @tparam array buffer an array to which the chunks can be added.
+-- @return the buffer array
+function methods:writeCanonical(options, buffer)
+	buffer[#buffer+1] = escape(self.__prop_values.data)
+	return buffer
+end
+
+
 --- Splits a text node, implements [splitText](https://www.w3.org/TR/DOM-Level-2-Core/#core-ID-32791A2F).
 -- Indices 1-indexed, and based on UTF-8 characters, not bytes.
 -- @name Text:splitText

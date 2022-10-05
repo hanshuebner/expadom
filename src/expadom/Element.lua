@@ -146,6 +146,90 @@ do
 
 		return buffer
 	end
+
+	--- exports the XML in canonical form
+	--
+	-- See methods:write() for a description of the namespace handling
+	--
+	-- @name Element:writeCanonical
+	-- @tparam table options array with canonical serialization options
+	-- @tparam array buffer an array to which the chunks can be added.
+	-- @tparam table namespacesInScope list of namespace URIs indexed by prefix
+	-- (or `constants.DEFAULT_NS_KEY` for the default namespace).
+	-- @return the buffer array
+	function methods:writeCanonical(options, buffer, namespacesInScope)
+		local nodeName = self.__prop_values.nodeName
+		buffer[#buffer+1] = "<"..nodeName
+
+		local new_namespaces = {}
+		local non_ns_attribs = {}
+
+		local function rememberNamespace(prefix, uri)
+			if namespacesInScope[prefix] ~= uri then
+				new_namespaces[#new_namespaces+1] = { prefix, uri }
+			end
+		end
+
+		rememberNamespace(self.__prop_values.prefix or DEFAULT_NS_KEY, self.__prop_values.namespaceURI)
+
+		-- divide up attributes into namespace declarations and real attributes
+		local attributes = self.__prop_values.attributes
+		if attributes then
+			for i = 1, attributes.n do
+				local attribute = attributes[i]
+				local props = attribute.__prop_values
+
+				if props.namespaceURI == constants.DEFAULT_NAMESPACES.xmlns then
+					rememberNamespace(props.localName, attribute.value)
+				else
+					local uri = attribute.__prop_values.namespaceURI
+					if uri then
+						rememberNamespace(attribute.__prop_values.prefix, uri)
+					end
+					non_ns_attribs[#non_ns_attribs+1] = attribute
+				end
+			end
+		end
+
+		-- render new namespaces
+		if #new_namespaces ~= 0 then
+			table.sort(new_namespaces, function (a, b) return a[2] < b[2] end)
+			local newNamespacesInScope = {}
+			for prefix, uri in pairs(namespacesInScope) do
+				newNamespacesInScope[prefix] = uri
+			end
+			for _, namespace in ipairs(new_namespaces) do
+				local prefix, uri = table.unpack(namespace)
+				newNamespacesInScope[prefix] = uri
+				if not DEFAULT_NAMESPACES[prefix] then
+					-- write namespace definition
+					if prefix == DEFAULT_NS_KEY then
+						buffer[#buffer+1] = ' xmlns="'..escape(uri or "")..'"'
+					else
+						buffer[#buffer+1] = ' xmlns:'..prefix..'="'..escape(uri)..'"'
+					end
+				end
+			end
+			namespacesInScope = newNamespacesInScope
+		end
+
+		-- render non-namespace attributes
+		table.sort(non_ns_attribs, function (a, b) return (a.__prop_values.namespaceURI or "") < (b.__prop_values.namespaceURI or "") end)
+		for _, attribute in ipairs(non_ns_attribs) do
+			attribute:writeCanonical(options, buffer, namespacesInScope)
+		end
+
+		buffer[#buffer+1] = ">"
+
+		-- add children
+		local children = self.__prop_values.childNodes
+		for _, child in ipairs(children) do
+			child:writeCanonical(options, buffer, namespacesInScope)
+		end
+		buffer[#buffer+1] = "</" .. nodeName .. ">"
+
+		return buffer
+	end
 end
 
 --- Creates or modifies a plain `Attribute` node on the Element, implements [setAttribute](https://www.w3.org/TR/DOM-Level-2-Core/#core-ID-F68F082).
