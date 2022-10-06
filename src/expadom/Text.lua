@@ -71,7 +71,7 @@ function methods:writeCanonical(options, buffer)
 	if options.trim_text_nodes then
 		data = trim(data)
 	end
-	buffer[#buffer+1] = escape(data)
+	buffer[#buffer+1] = data
 	return buffer
 end
 

@@ -193,10 +193,13 @@ do
 		local nodeName = self.__prop_values.nodeName
 		buffer[#buffer+1] = "<"..nodeName
 
+		print(nodeName .. " => [" .. (self.__prop_values.namespaceURI or "") .. "]")
+
 		local new_namespaces = {}
 		local non_ns_attribs = {}
 
 		local function maybeRememberNamespace(prefix, uri)
+			-- print("remember [" .. prefix .. "] => [" .. (uri or "") .. "]")
 			if namespacesInScope[prefix] ~= uri and self:namespaceIsUtilized(prefix, uri) then
 				new_namespaces[#new_namespaces+1] = { prefix, uri }
 			end
@@ -211,12 +214,14 @@ do
 				local attribute = attributes[i]
 				local props = attribute.__prop_values
 
+				print(nodeName .. " @" .. props.nodeName .. " in namespace [" .. (props.namespaceURI or "") .. "]")
 				if props.namespaceURI == constants.DEFAULT_NAMESPACES.xmlns then
+					print(nodeName .. " default ns set to " .. attribute.value)
 					maybeRememberNamespace(props.localName, attribute.value)
 				else
-					local uri = attribute.__prop_values.namespaceURI
+					local uri = props.namespaceURI
 					if uri then
-						maybeRememberNamespace(attribute.__prop_values.prefix, uri)
+						maybeRememberNamespace(props.prefix, uri)
 					end
 					non_ns_attribs[#non_ns_attribs+1] = attribute
 				end
@@ -248,7 +253,15 @@ do
 		end
 
 		-- render non-namespace attributes
-		table.sort(non_ns_attribs, function (a, b) return (a.__prop_values.namespaceURI or "") < (b.__prop_values.namespaceURI or "") end)
+		table.sort(
+			non_ns_attribs,
+			function (a, b)
+				if a.__prop_values.namespaceURI == b.__prop_values.namespaceURI then
+					return a.__prop_values.name < b.__prop_values.name
+				else
+					return (a.__prop_values.namespaceURI or "") < (b.__prop_values.namespaceURI or "")
+				end
+			end)
 		for _, attribute in ipairs(non_ns_attribs) do
 			attribute:writeCanonical(options, buffer, namespacesInScope)
 		end

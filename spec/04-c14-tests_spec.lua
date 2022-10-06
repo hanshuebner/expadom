@@ -87,10 +87,12 @@ describe("canonicalization test", function()
 	for _, outputFile in ipairs(files) do
 		local inputFile = outputFile:gsub("out_(.+)_.+%.xml", "%1.xml")
 		local optionsFile = outputFile:gsub("out_.+_(.+)%.xml", "%1.xml")
+		local inputName = path.splitext(path.basename(inputFile))
+		local optionsName = path.splitext(path.basename(optionsFile))
 
 		-- inC14N5.xml contains external entity references that LuaExpat does parse
 		if path.basename(inputFile) ~= "inC14N5.xml" then
-			it("#" .. path.splitext(path.basename(inputFile)) .. " with options #" .. path.splitext(path.basename(optionsFile)), function()
+			it("#" .. inputName .. " with options #" .. optionsName .. " (#" .. inputName .. "_" .. optionsName .. ")", function()
 				local inputXml = readXml(inputFile)
 				dumpXml(inputXml)
 				local options = readOptions(optionsFile)
