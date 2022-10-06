@@ -108,6 +108,7 @@ do
 			local ctx = context_cache[parser]
 			local node = ctx.node
 			local nodeType = node.nodeType
+			print('CharacterData: [' .. data .. ']')
 			if nodeType == TYPES.CDATA_SECTION_NODE then
 				node:appendData(data)
 			elseif nodeType == TYPES.ELEMENT_NODE then
