@@ -132,9 +132,12 @@ do
 			assert(ctx.node:appendChild(comment))
 		end,
 
-		-- Default = function(parser, data)
-		-- 	local ctx = context_cache[parser]
-		-- end,
+		Default = function(parser, data)
+			local ctx = context_cache[parser]
+			-- Default is called for text content outside of the root node
+			print("Node type", ctx.node.nodeType)
+			print("DEFAULT: [" .. data .. "]")
+		end,
 
 		-- DefaultExpand = function(parser, data) -- overrides "Default" if set
 		-- 	local ctx = context_cache[parser]
