@@ -4,6 +4,28 @@ local path = require("pl.path")
 
 local expadom = require "expadom"
 
+local nodeTypeNames = {
+	"ELEMENT",
+	"ATTRIBUTE",
+	"TEXT",
+	"CDATA_SECTION",
+	"ENTITY_REFERENCE",
+	"ENTITY",
+	"PROCESSING_INSTRUCTION",
+	"COMMENT",
+	"DOCUMENT",
+	"DOCUMENT_TYPE",
+	"DOCUMENT_FRAGMENT",
+	"NOTATION",
+}
+local function dumpXml(xml, indent)
+	indent = indent or ""
+	print(indent .. nodeTypeNames[xml.__prop_values.nodeType])
+	for _, child in ipairs(xml.__prop_values.childNodes) do
+		dumpXml(child, indent .. "  ")
+	end
+end
+
 describe("canonicalization test", function()
 
 	local options_ns = "http://www.w3.org/2010/xml-c14n2"
@@ -12,6 +34,8 @@ describe("canonicalization test", function()
 	table.sort(files)
 
 	local function canonicalize(inputXml, options)
+		local inspect = require "inspect"
+		print("options:", inspect(options))
 		return table.concat(inputXml:writeCanonical(options))
 	end
 
@@ -53,7 +77,7 @@ describe("canonicalization test", function()
 		end
 
 		return {
-			ignore_comments =  getElementText("IgnoreComments") == "true",
+			ignore_comments = getElementText("IgnoreComments") == "true",
 			prefix_rewrite = getElementText("PrefixRewrite"),
 			trim_text_nodes = getElementText("TrimTextNodes") == "true",
 			qname_aware = getQNameAware(),
@@ -68,6 +92,7 @@ describe("canonicalization test", function()
 		if path.basename(inputFile) ~= "inC14N5.xml" then
 			it("#" .. path.splitext(path.basename(inputFile)) .. " with options #" .. path.splitext(path.basename(optionsFile)), function()
 				local inputXml = readXml(inputFile)
+				dumpXml(inputXml)
 				local options = readOptions(optionsFile)
 				local outputString = assert(utils.readfile(outputFile))
 

@@ -92,7 +92,7 @@ end
 -- @tparam array buffer an array to which the chunks can be added.
 -- @return the buffer array
 function methods:writeCanonical(options, buffer)
-	if not options.ignore_comments then
+	if options.ignore_comments then -- ignore_comments == true means comments _should_ be rendered
 		buffer = self:write(buffer)
 	end
 	return buffer
