@@ -147,6 +147,38 @@ do
 		return buffer
 	end
 
+	-- Determine whether a certain namespace prefix declaration is utilized in this element
+	-- or any of its children.  Used in writeCanonical to filter out unused namespace declarations.
+	--
+	-- @name Element:namespaceIsUtilized
+	-- @tparam string prefix that is being declared
+	-- @tparam string uri of the namespace
+	-- @return true if the namespace is utilized in this element or its children, falsy otherwise
+	function methods:namespaceIsUtilized(prefix, uri)
+		if prefix == (self.__prop_values.prefix or DEFAULT_NS_KEY) and uri == self.__prop_values.namespaceURI then
+			return true
+		end
+		local attributes = self.__prop_values.attributes
+		if attributes then
+			for i = 1, attributes.n do
+				local attribute = attributes[i]
+				local props = attribute.__prop_values
+
+				if props.namespaceURI ~= constants.DEFAULT_NAMESPACES.xmlns
+					and prefix == props.prefix
+					and uri == props.namespaceURI then
+					return true
+				end
+			end
+		end
+		for _, child in ipairs(self.__prop_values.childNodes) do
+			if child:namespaceIsUtilized(uri, prefix) then
+				return true
+			end
+		end
+		return false
+	end
+
 	--- exports the XML in canonical form
 	--
 	-- See methods:write() for a description of the namespace handling
@@ -164,13 +196,13 @@ do
 		local new_namespaces = {}
 		local non_ns_attribs = {}
 
-		local function rememberNamespace(prefix, uri)
-			if namespacesInScope[prefix] ~= uri then
+		local function maybeRememberNamespace(prefix, uri)
+			if namespacesInScope[prefix] ~= uri and self:namespaceIsUtilized(prefix, uri) then
 				new_namespaces[#new_namespaces+1] = { prefix, uri }
 			end
 		end
 
-		rememberNamespace(self.__prop_values.prefix or DEFAULT_NS_KEY, self.__prop_values.namespaceURI)
+		maybeRememberNamespace(self.__prop_values.prefix or DEFAULT_NS_KEY, self.__prop_values.namespaceURI)
 
 		-- divide up attributes into namespace declarations and real attributes
 		local attributes = self.__prop_values.attributes
@@ -180,11 +212,11 @@ do
 				local props = attribute.__prop_values
 
 				if props.namespaceURI == constants.DEFAULT_NAMESPACES.xmlns then
-					rememberNamespace(props.localName, attribute.value)
+					maybeRememberNamespace(props.localName, attribute.value)
 				else
 					local uri = attribute.__prop_values.namespaceURI
 					if uri then
-						rememberNamespace(attribute.__prop_values.prefix, uri)
+						maybeRememberNamespace(attribute.__prop_values.prefix, uri)
 					end
 					non_ns_attribs[#non_ns_attribs+1] = attribute
 				end
@@ -193,20 +225,22 @@ do
 
 		-- render new namespaces
 		if #new_namespaces ~= 0 then
-			table.sort(new_namespaces, function (a, b) return a[2] < b[2] end)
+			table.sort(new_namespaces, function (a, b) return a[1] < b[1] end)
 			local newNamespacesInScope = {}
 			for prefix, uri in pairs(namespacesInScope) do
 				newNamespacesInScope[prefix] = uri
 			end
 			for _, namespace in ipairs(new_namespaces) do
 				local prefix, uri = table.unpack(namespace)
-				newNamespacesInScope[prefix] = uri
-				if not DEFAULT_NAMESPACES[prefix] then
-					-- write namespace definition
-					if prefix == DEFAULT_NS_KEY then
-						buffer[#buffer+1] = ' xmlns="'..escape(uri or "")..'"'
-					else
-						buffer[#buffer+1] = ' xmlns:'..prefix..'="'..escape(uri)..'"'
+				if newNamespacesInScope[prefix] ~= uri then
+					newNamespacesInScope[prefix] = uri
+					if not DEFAULT_NAMESPACES[prefix] then
+						-- write namespace definition
+						if prefix == DEFAULT_NS_KEY then
+							buffer[#buffer+1] = ' xmlns="'..escape(uri or "")..'"'
+						else
+							buffer[#buffer+1] = ' xmlns:'..prefix..'="'..escape(uri)..'"'
+						end
 					end
 				end
 			end

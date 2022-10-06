@@ -428,6 +428,16 @@ function methods:isSupported(feature, version)
 end
 
 
+-- Default implementation for namespaceIsUtilized check
+--
+-- @tparam string declared NS prefix
+-- @tparam string declared NS URI
+-- @return false
+function methods:namespaceIsUtilized(_prefix, _uri)
+	return false
+end
+
+
 do
 	local function combine_text(childNodes, sidx, eidx)
 		-- start-index and end-index of text nodes to combine
