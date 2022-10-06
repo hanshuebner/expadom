@@ -91,7 +91,11 @@ describe("canonicalization test", function()
 		local optionsName = path.splitext(path.basename(optionsFile))
 
 		-- inC14N5.xml contains external entity references that LuaExpat does parse
-		if path.basename(inputFile) ~= "inC14N5.xml" then
+		-- PrefixRewrite is not currently supported
+		-- QNameAware is not currently supported
+		if path.basename(inputFile) ~= "inC14N5.xml"
+			and not path.basename(optionsFile):find("Prefix")
+			and not path.basename(optionsFile):find("Qname") then
 			it("#" .. inputName .. " with options #" .. optionsName .. " (#" .. inputName .. "_" .. optionsName .. ")", function()
 				local inputXml = readXml(inputFile)
 				dumpXml(inputXml)
