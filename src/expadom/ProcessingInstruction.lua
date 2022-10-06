@@ -83,7 +83,12 @@ end
 -- @tparam array buffer an array to which the chunks can be added.
 -- @return the buffer array
 function methods:writeCanonical(options, buffer)
-	buffer[#buffer+1] = string.format("<?%s %s?>", self.__prop_values.target, self.__prop_values.data)
+	local props = self.__prop_values
+	if props.data ~= "" then
+		buffer[#buffer+1] = string.format("<?%s %s?>", props.target, props.data)
+	else
+		buffer[#buffer+1] = string.format("<?%s?>", props.target)
+	end
 	return buffer
 end
 
