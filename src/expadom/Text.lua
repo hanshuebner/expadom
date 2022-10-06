@@ -11,6 +11,7 @@ local CharacterData = require "expadom.CharacterData"
 
 local utf8 = require("expadom.xmlutils").utf8
 local escape = require("expadom.xmlutils").escape
+local trim = require("expadom.xmlutils").trim
 local constants = require "expadom.constants"
 local ERRORS = constants.ERRORS
 local TYPES = constants.NODE_TYPES
@@ -66,7 +67,11 @@ end
 -- @tparam array buffer an array to which the chunks can be added.
 -- @return the buffer array
 function methods:writeCanonical(options, buffer)
-	buffer[#buffer+1] = escape(self.__prop_values.data)
+	local data = self.__prop_values.data
+	if options.trim_text_nodes then
+		data = trim(data)
+	end
+	buffer[#buffer+1] = escape(data)
 	return buffer
 end
 

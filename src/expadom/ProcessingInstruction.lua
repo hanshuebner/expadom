@@ -83,7 +83,7 @@ end
 -- @tparam array buffer an array to which the chunks can be added.
 -- @return the buffer array
 function methods:writeCanonical(options, buffer)
-	buffer[#buffer+1] = string.format("<?%s %s?>", self.__prop_values.target, self.__prop_values.data)
+	buffer[#buffer+1] = string.format("<?%s %s?>\n", self.__prop_values.target, self.__prop_values.data)
 	return buffer
 end
 

@@ -134,6 +134,14 @@ function M.validate_qualifiedName_and_uri(qualifiedName, namespaceURI)
 end
 
 
+-- trim whitespace off the beginning and the end of the string
+-- @tparam string input
+-- @return string after trimming off whitespace
+function M.trim(s)
+	return (s:gsub("^%s*(.-)%s*$", "%1"))
+end
+
+
 do
 	local escape_table = {
 		["'"] = "&apos;",
